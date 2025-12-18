@@ -1,4 +1,44 @@
 """
+
+I didn't find anything related to check the user input either it is Urdu, Roman urdu, English or Arabic.
+I didn't find anything related for audio transcription.
+
+
+This file is the backend API for the Flutter app.
+It is used to authenticate users, search hadiths, and save search history.
+It is written in Python using Flask and PostgreSQL.
+It uses FAISS for semantic similarity search and OpenAI for embedding.
+It uses CORS to allow the Flutter app to access the API.
+It uses the dotenv package to load the environment variables from the .env file.
+It uses the faiss package for FAISS.
+It uses the pandas package for data manipulation.
+It uses the numpy package for numerical operations.
+It uses the openai package for OpenAI.
+It uses the psycopg2 package for PostgreSQL.
+It uses the flask_cors package for CORS.
+It uses the flask package for the Flask application.
+It uses the request package for the request object.
+It uses the jsonify package for the jsonify object.
+It uses the datetime package for the datetime object.
+It uses the os package for the os object.
+It uses the dotenv package for the dotenv object.
+It uses the faiss package for the faiss object.
+It uses the pandas package for the pandas object.
+It uses the numpy package for the numpy object.
+It uses the openai package for the openai object.
+It uses the psycopg2 package for the psycopg2 object.
+It uses the flask_cors package for the flask_cors object.
+It uses the flask package for the flask object.
+It uses the request package for the request object.
+It uses the jsonify package for the jsonify object.
+It uses the datetime package for the datetime object.
+It uses the os package for the os object.
+It uses the dotenv package for the dotenv object.
+It uses the faiss package for the faiss object.
+It uses the pandas package for the pandas object.
+It uses the numpy package for the numpy object.
+It uses the openai package for the openai object.
+
 Flask Backend API Example
 This file shows the expected Flask endpoints that should be implemented
 to work with the Flutter app's authentication flow.

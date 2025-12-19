@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 
 import '../models/hadith_models.dart';
 import '../utils/apps_colors.dart';
-import '../widgets/custom_button.dart';
 
 class ResultDetailPage extends StatefulWidget {
   final int userId;
@@ -25,6 +24,7 @@ class ResultDetailPage extends StatefulWidget {
 
 class _ResultDetailPageState extends State<ResultDetailPage> {
   late bool _isBookmarked;
+  // ignore: unused_field
   int? _bookmarkId;
 
   @override
@@ -102,7 +102,7 @@ class _ResultDetailPageState extends State<ResultDetailPage> {
               const SizedBox(height: 4),
               Text(
                 d.arabicText,
-                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.right,
                 style: const TextStyle(
                   fontSize: 18,
                   height: 1.7,
@@ -125,7 +125,7 @@ class _ResultDetailPageState extends State<ResultDetailPage> {
               const SizedBox(height: 4),
               Text(
                 d.urduText,
-                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.right,
                 style: const TextStyle(
                   fontSize: 16,
                   height: 1.7,

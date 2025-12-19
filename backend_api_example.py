@@ -75,15 +75,15 @@ CORS(app)  # Enable CORS for Flutter app
 # Database configuration
 DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
-    'database': os.getenv('DB_NAME', 'true_hadith_db'),
+    'database': os.getenv('DB_NAME', 'fyp_true_hadith'),
     'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD', 'password'),
+    'password': os.getenv('DB_PASSWORD', 'mojo123'),
     'port': os.getenv('DB_PORT', '5432')
 }
 
 # FAISS and Mapping File Paths
-BUKHARI_FAISS_PATH = os.path.join('data', 'faiss', 'bukhari.index')
-TIRMIZI_FAISS_PATH = os.path.join('data', 'faiss', 'tirmizi.index')
+BUKHARI_FAISS_PATH = os.path.join('data', 'faiss', 'bukhari_faiss.index')
+TIRMIZI_FAISS_PATH = os.path.join('data', 'faiss', 'tirmizi_faiss.index')
 BUKHARI_MAPPING_PATH = os.path.join('data', 'mapping', 'bukhari_mapping.csv')
 TIRMIZI_MAPPING_PATH = os.path.join('data', 'mapping', 'tirmizi_mapping.csv')
 

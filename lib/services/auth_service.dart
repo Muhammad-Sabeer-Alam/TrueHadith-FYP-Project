@@ -25,7 +25,11 @@ class AuthService {
 
       final String firebaseUid = firebaseUser.uid;
 
-      // Step 2: Register user in PostgreSQL backend
+      // Step 2: Update Firebase display name
+      await firebaseUser.updateDisplayName(name);
+      await firebaseUser.reload();
+
+      // Step 3: Register user in PostgreSQL backend
       final UserModel userModel = await ApiService.registerUser(
         firebaseUid: firebaseUid,
         username: name,
@@ -89,6 +93,137 @@ class AuthService {
     }
   }
 
+  /// Send email verification
+  static Future<void> sendEmailVerification() async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in');
+      }
+      if (user.emailVerified) {
+        throw Exception('Email is already verified');
+      }
+      await user.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getFirebaseErrorMessage(e.code));
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Failed to send verification email: ${e.toString()}');
+    }
+  }
+
+  /// Reload current user to get latest data (e.g., email verification status)
+  static Future<void> reloadUser() async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user != null) {
+        await user.reload();
+      }
+    } catch (e) {
+      throw Exception('Failed to reload user: ${e.toString()}');
+    }
+  }
+
+  /// Check if current user's email is verified
+  static bool isEmailVerified() {
+    final User? user = _auth.currentUser;
+    return user?.emailVerified ?? false;
+  }
+
+  /// Update user's display name in Firebase
+  static Future<void> updateDisplayName(String displayName) async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in');
+      }
+      await user.updateDisplayName(displayName);
+      await user.reload();
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getFirebaseErrorMessage(e.code));
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Failed to update display name: ${e.toString()}');
+    }
+  }
+
+  /// Update user's email in Firebase
+  /// Note: Email updates should be handled through your backend API
+  /// or Firebase Console for security reasons
+  /// This method is a placeholder - implement email update through backend
+  static Future<void> updateEmail(String newEmail) async {
+    // Email updates are sensitive operations and should be handled server-side
+    // or through Firebase Console. Implement this through your backend API.
+    throw Exception('Email update should be handled through backend API or Firebase Console');
+  }
+
+  /// Update user's password
+  static Future<void> updatePassword(String newPassword) async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in');
+      }
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getFirebaseErrorMessage(e.code));
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Failed to update password: ${e.toString()}');
+    }
+  }
+
+  /// Re-authenticate user (required for sensitive operations)
+  static Future<void> reauthenticate(String password) async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in');
+      }
+      if (user.email == null) {
+        throw Exception('User email is null');
+      }
+
+      final AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+
+      await user.reauthenticateWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getFirebaseErrorMessage(e.code));
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Re-authentication failed: ${e.toString()}');
+    }
+  }
+
+  /// Delete user account (requires re-authentication first)
+  static Future<void> deleteAccount() async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No user is currently signed in');
+      }
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getFirebaseErrorMessage(e.code));
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Failed to delete account: ${e.toString()}');
+    }
+  }
+
   /// Sign out current user
   static Future<void> signOut() async {
     await _auth.signOut();
@@ -102,6 +237,33 @@ class AuthService {
   /// Check if user is signed in
   static bool isSignedIn() {
     return _auth.currentUser != null;
+  }
+
+  /// Stream of auth state changes
+  /// Use this to listen to authentication state changes in real-time
+  static Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  /// Stream of user changes (includes profile updates)
+  /// Use this to listen to user profile changes
+  static Stream<User?> get userChanges => _auth.userChanges();
+
+  /// Get user data from backend if signed in
+  /// Returns null if not signed in or if backend call fails
+  static Future<UserModel?> getCurrentUserData() async {
+    try {
+      final User? firebaseUser = _auth.currentUser;
+      if (firebaseUser == null) {
+        return null;
+      }
+
+      final UserModel userModel = await ApiService.loginUser(
+        firebaseUid: firebaseUser.uid,
+      );
+
+      return userModel;
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Convert Firebase error codes to user-friendly messages
@@ -123,6 +285,14 @@ class AuthService {
         return 'Too many requests. Please try again later.';
       case 'operation-not-allowed':
         return 'Signing in with Email and Password is not enabled.';
+      case 'requires-recent-login':
+        return 'This operation requires recent authentication. Please log in again.';
+      case 'invalid-credential':
+        return 'The credential is invalid or has expired.';
+      case 'account-exists-with-different-credential':
+        return 'An account already exists with the same email address but different sign-in credentials.';
+      case 'network-request-failed':
+        return 'A network error occurred. Please check your internet connection.';
       default:
         return 'An error occurred: $code';
     }

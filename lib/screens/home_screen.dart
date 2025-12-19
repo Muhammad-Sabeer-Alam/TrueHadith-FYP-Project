@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 
 import '../utils/apps_colors.dart';
 import '../widgets/custom_button.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int userId;
@@ -388,9 +390,27 @@ class HomeDrawer extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/login');
+              try {
+                await AuthService.signOut();
+                if (context.mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    (route) => false,
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error logging out: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('Logout'),
           ),

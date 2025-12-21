@@ -13,7 +13,8 @@ class AuthService {
   }) async {
     try {
       // Step 1: Create user in Firebase
-      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      final UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -38,7 +39,7 @@ class AuthService {
 
       return userModel;
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw Exception(_getFirebaseErrorMessage(e.code, e.message));
     } catch (e) {
       if (e is Exception) {
         rethrow;
@@ -54,7 +55,8 @@ class AuthService {
   }) async {
     try {
       // Step 1: Sign in with Firebase
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -73,7 +75,7 @@ class AuthService {
 
       return userModel;
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw Exception(_getFirebaseErrorMessage(e.code, e.message));
     } catch (e) {
       if (e is Exception) {
         rethrow;
@@ -87,7 +89,7 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw Exception(_getFirebaseErrorMessage(e.code, e.message));
     } catch (e) {
       throw Exception('Failed to send password reset email: ${e.toString()}');
     }
@@ -105,7 +107,7 @@ class AuthService {
       }
       await user.sendEmailVerification();
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw Exception(_getFirebaseErrorMessage(e.code, e.message));
     } catch (e) {
       if (e is Exception) {
         rethrow;
@@ -142,7 +144,7 @@ class AuthService {
       await user.updateDisplayName(displayName);
       await user.reload();
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw Exception(_getFirebaseErrorMessage(e.code, e.message));
     } catch (e) {
       if (e is Exception) {
         rethrow;
@@ -158,7 +160,8 @@ class AuthService {
   static Future<void> updateEmail(String newEmail) async {
     // Email updates are sensitive operations and should be handled server-side
     // or through Firebase Console. Implement this through your backend API.
-    throw Exception('Email update should be handled through backend API or Firebase Console');
+    throw Exception(
+        'Email update should be handled through backend API or Firebase Console');
   }
 
   /// Update user's password
@@ -170,7 +173,7 @@ class AuthService {
       }
       await user.updatePassword(newPassword);
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw Exception(_getFirebaseErrorMessage(e.code, e.message));
     } catch (e) {
       if (e is Exception) {
         rethrow;
@@ -197,7 +200,7 @@ class AuthService {
 
       await user.reauthenticateWithCredential(credential);
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw Exception(_getFirebaseErrorMessage(e.code, e.message));
     } catch (e) {
       if (e is Exception) {
         rethrow;
@@ -215,7 +218,7 @@ class AuthService {
       }
       await user.delete();
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getFirebaseErrorMessage(e.code));
+      throw Exception(_getFirebaseErrorMessage(e.code, e.message));
     } catch (e) {
       if (e is Exception) {
         rethrow;
@@ -267,7 +270,7 @@ class AuthService {
   }
 
   /// Convert Firebase error codes to user-friendly messages
-  static String _getFirebaseErrorMessage(String code) {
+  static String _getFirebaseErrorMessage(String code, [String? message]) {
     switch (code) {
       case 'weak-password':
         return 'The password provided is too weak.';
@@ -294,8 +297,7 @@ class AuthService {
       case 'network-request-failed':
         return 'A network error occurred. Please check your internet connection.';
       default:
-        return 'An error occurred: $code';
+        return message ?? 'An error occurred: $code';
     }
   }
 }
-

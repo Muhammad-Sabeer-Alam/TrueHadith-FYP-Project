@@ -4,6 +4,10 @@
 *.pyc
 *.swp
 .DS_Store
+venv/
+# Local env files (keep secrets out of VCS)
+.env
+.env.local
 .atom/
 .build/
 .buildlog/

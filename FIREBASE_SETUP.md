@@ -142,3 +142,9 @@ If you're still stuck:
 1. Check the browser console (F12) for detailed error messages
 2. Verify your Firebase project is active and billing is enabled (if required)
 3. Make sure you're logged into the correct Firebase account
+
+
+
+
+
+

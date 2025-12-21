@@ -61,11 +61,18 @@ from psycopg2.extras import RealDictCursor
 from datetime import datetime
 import os
 from dotenv import load_dotenv
-import faiss
-import pandas as pd
-import numpy as np
-import openai
 import re
+
+# Optional heavy dependencies for AI search
+try:
+    import faiss
+    import pandas as pd
+    import numpy as np
+    import openai
+    HAS_AI_DEPS = True
+except ImportError:
+    print("⚠ Warning: AI dependencies (faiss, pandas, numpy, openai) not found. AI Search will be disabled.")
+    HAS_AI_DEPS = False
 
 load_dotenv()
 
@@ -94,7 +101,8 @@ bukhari_mapping = None
 tirmizi_mapping = None
 
 # OpenAI API Key
-openai.api_key = os.getenv('OPENAI_API_KEY', '')
+if HAS_AI_DEPS:
+    openai.api_key = os.getenv('OPENAI_API_KEY', '')
 
 
 def load_faiss_indexes():
@@ -138,12 +146,17 @@ def load_mapping_csvs():
 
 
 # Load FAISS and mappings when server starts
-print("\n" + "="*50)
-print("Loading FAISS indexes and mapping files...")
-print("="*50)
-load_faiss_indexes()
-load_mapping_csvs()
-print("="*50 + "\n")
+if HAS_AI_DEPS:
+    print("\n" + "="*50)
+    print("Loading FAISS indexes and mapping files...")
+    print("="*50)
+    load_faiss_indexes()
+    load_mapping_csvs()
+    print("="*50 + "\n")
+else:
+    print("\n" + "="*50)
+    print("Skipping AI Search initialization (dependencies missing)")
+    print("="*50 + "\n")
 
 
 def get_db_connection():
@@ -226,7 +239,8 @@ def register_user():
         }), 201
         
     except Exception as e:
-        if conn:
+        print(f"Registration error: {e}")
+        if 'conn' in locals() and conn:
             conn.rollback()
             cursor.close()
             conn.close()
@@ -289,7 +303,8 @@ def login_user():
         }), 200
         
     except Exception as e:
-        if conn:
+        print(f"Login error: {e}")
+        if 'conn' in locals() and conn:
             cursor.close()
             conn.close()
         return jsonify({'message': f'Login failed: {str(e)}'}), 500
@@ -319,6 +334,8 @@ def clean_text(text):
 
 def get_embedding(text):
     """Get OpenAI embedding for text"""
+    if not HAS_AI_DEPS:
+        return None
     try:
         response = openai.embeddings.create(
             model="text-embedding-3-large",
@@ -332,28 +349,8 @@ def get_embedding(text):
 
 @app.route('/api/search', methods=['POST'])
 def search_hadiths():
-    """
-    Search hadiths using FAISS semantic similarity
-    
-    Expected JSON body:
-    {
-        "user_id": int,
-        "query": "string"
-    }
-    
-    Returns:
-    {
-        "results": [
-            {
-                "hadith_id": int,
-                "book_name": "string",
-                "hadith_number": int,
-                "chapter_number": int,
-                "grade": "string"
-            }
-        ]
-    }
-    """
+    if not HAS_AI_DEPS:
+        return jsonify({'message': 'Search is currently disabled due to missing dependencies on the server.'}), 503
     try:
         data = request.get_json()
         

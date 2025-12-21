@@ -4,8 +4,9 @@ import '../models/user_model.dart';
 
 class ApiService {
   // Update this with your Flask backend URL
-  static const String baseUrl = 'http:// 192.168.100.12:5000/api'; // Change to your backend URL
-  
+  static const String baseUrl =
+      'http://192.168.0.106:5000/api'; // Change to your backend URL (no leading space)
+
   // For Android emulator, use: http://10.0.2.2:5000/api
   // For iOS simulator, use: http://localhost:5000/api
   // For physical device, use your computer's IP: http://192.168.x.x:5000/api
@@ -32,12 +33,24 @@ class ApiService {
         final data = jsonDecode(response.body);
         return UserModel.fromJson(data);
       } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Registration failed');
+        final bodyText = response.body.isNotEmpty ? response.body : '<empty>';
+        String msg;
+        try {
+          final error = jsonDecode(bodyText);
+          msg = error['message'] ?? bodyText;
+        } catch (_) {
+          msg = bodyText;
+        }
+        throw Exception(
+            'Registration failed: HTTP ${response.statusCode} - $msg');
       }
+    } on http.ClientException catch (e) {
+      throw Exception(
+          'Network error: Check your internet connection or server status. (${e.message})');
     } catch (e) {
-      if (e is Exception) {
-        rethrow;
+      // Always throw a descriptive Exception so UI can display it
+      if (e.toString().contains('is not a subtype of type')) {
+        throw Exception('Server error: Invalid response format');
       }
       throw Exception('Network error: ${e.toString()}');
     }
@@ -61,15 +74,24 @@ class ApiService {
         final data = jsonDecode(response.body);
         return UserModel.fromJson(data);
       } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Login failed');
+        final bodyText = response.body.isNotEmpty ? response.body : '<empty>';
+        String msg;
+        try {
+          final error = jsonDecode(bodyText);
+          msg = error['message'] ?? bodyText;
+        } catch (_) {
+          msg = bodyText;
+        }
+        throw Exception('Login failed: HTTP ${response.statusCode} - $msg');
       }
+    } on http.ClientException catch (e) {
+      throw Exception(
+          'Network error: Check your internet connection or server status. (${e.message})');
     } catch (e) {
-      if (e is Exception) {
-        rethrow;
+      if (e.toString().contains('is not a subtype of type')) {
+        throw Exception('Server error: Invalid response format');
       }
       throw Exception('Network error: ${e.toString()}');
     }
   }
 }
-

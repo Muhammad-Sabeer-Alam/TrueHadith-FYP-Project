@@ -5,6 +5,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart'; // Firebase configuration
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/bookmark_page.dart';
+import 'screens/history_page.dart';
+import 'screens/result_page.dart';
+import 'screens/voice_input_page.dart';
+import 'screens/crop_image_page.dart';
+import 'screens/audio_trimming_page.dart';
 import 'services/auth_service.dart';
 import 'models/user_model.dart';
 import 'utils/apps_colors.dart';
@@ -39,6 +45,67 @@ class MyApp extends StatelessWidget {
       ),
       // Use AuthWrapper to handle authentication state
       home: const AuthWrapper(),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/bookmarks':
+            final userId = settings.arguments as int;
+            // TODO: Fetch real bookmarks from API
+            return MaterialPageRoute(
+              builder: (context) => BookmarkPage(
+                userId: userId,
+                bookmarks: const [], // Empty list for now
+              ),
+            );
+
+          case '/history':
+            final userId = settings.arguments as int;
+            // TODO: Fetch real history from API
+            return MaterialPageRoute(
+              builder: (context) => HistoryPage(
+                userId: userId,
+                history: const [], // Empty list for now
+              ),
+            );
+
+          case '/result_detail':
+            // If you have a detail page, add it here.
+            // For now assuming result_detail_page.dart exists based on file list
+            // but wasn't in the plan explicitly other than existing files.
+            // Let's check if ResultDetailPage needs addition or if it was just implicit.
+            // Using placeholder or generic route if file details are needed.
+            // Actually, let's stick to the requested fixes: bookmarks and history.
+            // But I should handle '/results' as per home_screen calls.
+            return null;
+
+          case '/results':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (context) => ResultPage(
+                userId: args['userId'],
+                query: args['query'],
+                results: const [], // Empty list for now
+              ),
+            );
+
+          case '/voice_input':
+            return MaterialPageRoute(
+              builder: (context) => const VoiceInputPage(),
+            );
+
+          case '/crop_image':
+            return MaterialPageRoute(
+              builder: (context) => const CropImagePage(),
+            );
+
+          case '/audio_trimming':
+            return MaterialPageRoute(
+              builder: (context) => const AudioTrimmingPage(),
+            );
+
+          default:
+            return null;
+        }
+      },
     );
   }
 }

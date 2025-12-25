@@ -22,13 +22,82 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+  late AnimationController _fabAnimationController;
+  late Animation<double> _fabWidthAnimation;
+  late Animation<double> _textOpacityAnimation;
+  bool _showText = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _fabAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    // Width animation for smooth expansion
+    _fabWidthAnimation = Tween<double>(begin: 56.0, end: 160.0).animate(
+      CurvedAnimation(
+        parent: _fabAnimationController,
+        curve: Curves.easeInOutCubic,
+      ),
+    );
+
+    // Text fade animation (delayed start)
+    _textOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _fabAnimationController,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeIn),
+      ),
+    );
+
+    // Auto-expand FAB after initial delay (like WhatsApp Meta animation)
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        _fabAnimationController.forward();
+        setState(() => _showText = true);
+        // Auto-collapse after 4 seconds
+        Future.delayed(const Duration(seconds: 4), () {
+          if (mounted) {
+            _fabAnimationController.reverse();
+            Future.delayed(const Duration(milliseconds: 400), () {
+              if (mounted) setState(() => _showText = false);
+            });
+          }
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _fabAnimationController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onFabTap() {
+    if (_fabAnimationController.value > 0.5) {
+      // If expanded, navigate to chatbot
+      Navigator.pushNamed(context, '/chatbot');
+    } else {
+      // Expand the FAB smoothly
+      _fabAnimationController.forward();
+      setState(() => _showText = true);
+      // Auto-collapse after 4 seconds
+      Future.delayed(const Duration(seconds: 4), () {
+        if (mounted) {
+          _fabAnimationController.reverse();
+          Future.delayed(const Duration(milliseconds: 400), () {
+            if (mounted) setState(() => _showText = false);
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -63,6 +132,57 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 40),
+        child: AnimatedBuilder(
+          animation: _fabAnimationController,
+          builder: (context, child) {
+            return GestureDetector(
+              onTap: _onFabTap,
+              child: Container(
+                height: 56,
+                width: _fabWidthAnimation.value,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.chat_bubble_outline,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    if (_showText) ...[
+                      const SizedBox(width: 8),
+                      Opacity(
+                        opacity: _textOpacityAnimation.value,
+                        child: const Text(
+                          'Ask Chatbot',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
       body: SafeArea(
         child: Padding(
@@ -397,7 +517,8 @@ class HomeDrawer extends StatelessWidget {
                 if (context.mounted) {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const LoginScreen()),
                     (route) => false,
                   );
                 }
@@ -447,4 +568,3 @@ class _DrawerItem extends StatelessWidget {
     );
   }
 }
-
